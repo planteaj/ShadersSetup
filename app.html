@@ -1,0 +1,280 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>three.js webgl - shader controls</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link type="text/css" rel="stylesheet" href="css/main.css">
+
+    <script id="cubeVertexShader" type="x-shader/x-vertex">
+        // https://pandaqitutorials.com/Games/9-three-js-complete-glsl-tutorial
+        // ---`Vertex Shader Code
+        //		Here's the space for variables
+
+        varying vec3 	vNormal;
+        uniform vec3 	uLightDirection;
+        varying vec2 	vUv;
+        varying vec3 Position;
+
+        //The built-in main function
+        void main()
+        {
+        //Every vertex shader must eventually set 'gl_Position'
+        //And in this case, we multiply the vertex position with the camera view and
+        // screen matrix to get the final output.
+
+        // 'normal' is a standard value provided by Three.js for every vertex
+        // just as 'position'
+        vNormal = normalize(normalMatrix * normal);;
+
+        //Get UV coordinates
+        vUv = uv;
+        Position = vec3(modelViewMatrix * vec4(position, 1.0));
+        gl_Position = 	projectionMatrix *
+        modelViewMatrix *
+        vec4( position, 1.0 );
+        }
+    </script>
+
+    <script id="cubeFragmentShader" type="x-shader/x-fragment">
+        //Fragment Shader Code
+        //  Works with a  lot of triangles, and  determines the colors for each pixel in them.
+        //  These are sent back and properly displayed on the monitor.
+        //
+
+        varying vec3 vNormal;
+        varying vec3 Position;
+        uniform vec3 uLightDirection;
+
+        varying vec2 vUv;
+        uniform sampler2D theTexture;
+        uniform vec4 LightPosition;
+        void main()
+        {
+
+        //Create a vector to determine where light comes from
+        // (similar to directional light in this case)
+        // vec3 light = vec4(0.5, 0.2, 1.0, 1);
+
+        //Normalize it
+        //shrinks all x,y and z all three values of the vector down to a value between 0 and 1.
+
+
+        //Calculate 'dot product'
+        // and clamp 0->1 instead of -1->1
+
+        vec3 s = normalize(vec3(LightPosition) - Position);
+        vec3 n = normalize(vNormal);
+        float dProd = max(0.0, dot(n, s));
+        // If the normal and light vector are equal (point in same direction),
+        // this returns 1 (fully lit)
+        // If they are completely opposite,
+        // this returns -1 (which we make 0.0, and is completely dark).
+
+        //And output this color. // not sure why the color rotates with the cube.
+        gl_FragColor = vec4( dProd, dProd, dProd, 1.0 );  //RGBA
+        }
+    </script>
+
+    <script id="AnotherCubeFragmentShader" type="x-shader/x-fragment">
+        //Fragment Shader Code
+        //  Works with a  lot of triangles, and  determines the colors for each pixel in them.
+        //  These are sent back and properly displayed on the monitor.
+        //
+        //varying vec3 vNormal;
+        //uniform vec3 uLightDirection;
+
+        varying vec2 vUv;
+        uniform sampler2D theTexture;
+
+        void main()
+        {
+        //Just as vertex shader, fragment shader must in the end set this variable (gl_FragColor)
+        //We set it to a pink color, a very pink color
+        gl_FragColor = vec4(	1.0,  // R
+        0.0,  // G
+        1.0,  // B
+        1.0); // A
+
+        gl_FragColor = texture2D(theTexture, vUv);
+
+        }
+    </script>
+
+    <script id="teapotVertexShader" type="x-shader/x-vertex">
+        // add code here
+        varying vec3 Normal;
+        varying vec3 Position;
+
+        void main()
+        {
+        Normal = normalize(normalMatrix * normal);
+        Position = vec3(modelViewMatrix * vec4(position, 1.0));
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    </script>
+
+
+    <script id="teapotFragmentShader" type="x-shader/x-fragment">
+        // add code here
+
+        varying vec3 Normal;
+        varying vec3 Position;
+
+        uniform vec3 Ka;
+        uniform vec3 Kd;
+        uniform vec3 Ks;
+        uniform vec4 LightPosition;
+        uniform vec3 LightIntensity;
+        uniform float Shininess;
+
+        vec3 phong()
+        {
+        vec3 n = normalize(Normal);
+        vec3 s = normalize(vec3(LightPosition) - Position);
+        vec3 v = normalize(vec3(-Position));
+        vec3 r = reflect(-s, n);
+
+        vec3 ambient = Ka;
+        vec3 diffuse = Kd * max(dot(s, n), 0.0);
+        vec3 specular = Ks * pow(max(dot(r, v), 0.0), Shininess);
+
+        return LightIntensity * (ambient + diffuse + specular);
+        }
+
+        void main()
+        {
+        gl_FragColor = vec4(phong(), 1.0);
+        }
+    </script>
+
+    <script id="normalVertexShader" type="x-shader/x-vertex">
+        // add code here
+        varying vec3 Normal;
+        varying vec3 Position;
+
+        void main()
+        {
+        // Normal = normalize(normalMatrix * normal);
+        Normal = normal;
+        Position = vec3(modelViewMatrix * vec4(position, 1.0));
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    </script>
+
+    <script id="normalFragmentShader" type="x-shader/x-fragment">
+        // add code here
+
+        varying vec3 Normal;
+        varying vec3 Position;
+
+        //uniform vec3 colorC = (Normal.x, Normal.y, Normal.z)
+
+        void main()
+        {
+        gl_FragColor = vec4(Normal, 1.0);
+        }
+    </script>
+
+    <script id="toonVertexShader" type="x-shader/x-vertex">
+        // add code here
+        varying vec3 Normal;
+        varying vec3 Position;
+
+        void main()
+        {
+        Normal = normalize(normalMatrix * normal);
+        Position = vec3(modelViewMatrix * vec4(position, 1.0));
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+    </script>
+
+
+    <script id="toonFragmentShader" type="x-shader/x-fragment">
+        // add code here
+
+        varying vec3 Normal;
+        varying vec3 Position;
+        vec3 color;
+        uniform vec3 ToonColor;
+        uniform vec3 lightDirection;
+
+        vec3 toon()
+        {
+        if(float(lightDirection *Normal) > .95)
+        {
+        color = ToonColor;
+        }
+        else if(float(lightDirection *Normal) > .5)
+        {
+        color = ToonColor - .3;
+        }
+        else if(float(lightDirection *Normal) > .1)
+        {
+        color = ToonColor - .5;
+        }
+        else
+        color = ToonColor - .75;
+        return color;
+        }
+
+        void main()
+        {
+        gl_FragColor = vec4(toon(), 1.0);
+        }
+    </script>
+
+    <script id="myVertexShader" type="x-shader/x-vertex">
+        // https://pandaqitutorials.com/Games/9-three-js-complete-glsl-tutorial
+        // ---`Vertex Shader Code
+        //		Here's the space for variables
+
+        varying vec3 	vNormal;
+        uniform vec3 	uLightDirection;
+        uniform float time;
+        uniform float intensity;
+        varying vec3   vUv;
+        varying vec3 Position;
+
+        //The built-in main function
+        void main()
+        {
+
+        vec3 newPosition = position;
+        newPosition.x= position.x + sin(position.y*10.0 + time*10.0) * -.15;
+        newPosition.z= position.z + sin(position.y*10.0 + time*10.0) * -.15;
+        vUv = position;
+        gl_Position = 	projectionMatrix *
+        modelViewMatrix *
+        vec4( newPosition , 1.0 );
+        }
+    </script>
+
+    <script id="myFragmentShader" type="x-shader/x-fragment">
+
+        varying vec3 vNormal;
+        varying vec3 Position;
+        uniform vec3 uLightDirection;
+        uniform vec3 myColor;
+        uniform float time;
+        uniform vec3 myColorTwo;
+        varying vec3 vUv;
+        uniform sampler2D theTexture;
+        uniform vec4 LightPosition;
+
+        void main()
+        {
+        gl_FragColor = vec4(mix(myColor,myColorTwo, vUv.z * time), 1.0 );
+        }
+    </script>
+
+
+</head>
+	<body>
+		<div id="info">
+		</div>
+		<div id="scene-container">
+			<script type="module" src="app.js"></script>
+		</div>
+	</body>
+</html>
